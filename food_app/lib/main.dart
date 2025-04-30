@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:food_app/noti.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized;
+  WidgetsFlutterBinding.ensureInitialized();
 
-  Noti().initNotification;
+  Noti().initNotification();
   runApp(const MainApp());
 }
 
@@ -18,6 +18,7 @@ class MainApp extends StatelessWidget {
         body: Center(
           child: ElevatedButton(
             onPressed: () {
+              print('showing noti');
               Noti().showNotification(
                 title: 'titel',
                 body: 'her står der tekst',
