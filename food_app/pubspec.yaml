@@ -4,15 +4,19 @@ publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.7.2
+  sdk: ^3.6.0
 
 dependencies:
   flutter:
     sdk: flutter
 
+  english_words: ^4.0.0
+  provider: ^6.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
   flutter_lints: ^5.0.0
 
 flutter:
