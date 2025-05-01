@@ -4,12 +4,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 class Noti {
   final notificationsPlugin = FlutterLocalNotificationsPlugin();
 
- final bool _isInitialized = false; 
+ // skal ikke udkommenteres final bool _isInitialized = false; 
 
-  bool get isInitialized => _isInitialized;
+ // skal ikke udkommenteres bool get isInitialized => _isInitialized;
 
   Future<void> initNotification() async{
-    if (_isInitialized) return;
+   //skal ikke udkommenteres if (_isInitialized) return;
 
     // for android
     const initSettingsAndroid = 
@@ -38,9 +38,9 @@ class Noti {
     return const NotificationDetails(
       android: AndroidNotificationDetails(
         // //HER SKAL VI UDFYLDE DETALJERNE FRA NOTIFIKATIONEN. MITCH HAR SKREVET DETTE
-        'daily_channel_id',
-        'Daily Notifications',
-        channelDescription: 'Daily notifications channel',
+        'test',
+        'hej med dig',
+        channelDescription: 'Notifikation for madspild',
         importance: Importance.max, 
         priority: Priority.high
       ),
@@ -53,13 +53,13 @@ class Noti {
     int id = 0,
     String? title,
     String? body,
-    String? payload, 
+   // String? payload, 
   }) async {
     return notificationsPlugin.show(
       id, 
       title, 
       body, 
-    const NotificationDetails()
+    /* const */ NotificationDetails(),
     );
   }
 

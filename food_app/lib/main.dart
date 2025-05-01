@@ -18,7 +18,7 @@ class MainApp extends StatelessWidget {
         body: Center(
           child: ElevatedButton(
             onPressed: () {
-              print('showing noti');
+              // print('showing noti');
               Noti().showNotification(
                 title: 'titel',
                 body: 'her står der tekst',
