@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mysql1/mysql1.dart';
 import 'dart:math';
+// import ''
 
 
 // TODO - the more up the TODO, the more urgent
@@ -27,8 +29,31 @@ void main() => runApp(
       colorScheme: ColorScheme.fromSeed(
       seedColor: Color.fromARGB(255, 60, 255, 0),brightness: Brightness.dark),
     ),
-  )
+  ),
 );
+
+
+
+
+
+Future<String> getFirstRow(/*ConnectionSettings settings*/) async {
+
+  var settings = ConnectionSettings(
+    host: 'localhost', 
+    port: 3306,
+    user: 'root',
+    password: 'KENDATABASE123',
+    db: 'food_db'
+  );
+  var connection = await MySqlConnection.connect(settings);
+  var results = await connection.query('select name from food');
+  await connection.close();
+  print (results.first.toString());
+  return results.first.toString();
+}
+
+// var conn = await MySqlConnection.connect(settings);
+
 
 List<FoodItem> allFoodItems = []; 
 
@@ -148,6 +173,7 @@ class _FreshFoodState extends State<FreshFood> {
           ElevatedButton(
             onPressed:() {
               addCustomFoodItem(allFoodItems);
+              // getFirstRow();
             },
             // onPressed: () => print('press'),
             child: Icon(Icons.add_rounded)
