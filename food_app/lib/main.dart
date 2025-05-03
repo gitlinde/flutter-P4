@@ -2,7 +2,15 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 
-// TODO
+// TODO - the more up the TODO, the more urgent
+
+// make db connection
+// change index in FoodItem to a db id
+// note; the current delete bug gets fixed with db connection
+// add button to delete
+// add edit food button
+
+
 // be able to add to the list of foods
 // // how to pick date for it?
 
@@ -24,19 +32,26 @@ void main() => runApp(
 
 List<FoodItem> allFoodItems = []; 
 
-
-// List<FoodItem> freshFoodItems = []; 
+List<FoodItem> freshFoodItems = []; 
 
 List<FoodItem> expiredFoodItems = []; 
 
+
 int selectedDestinationIndex = 0;
 
+// Descending
+List<FoodItem> sortByExpiryDate() {
+  List<FoodItem> sorted = allFoodItems;
 
+  sorted.sort((a,b) => a.daysUntilExpiry.compareTo(b.daysUntilExpiry));
+
+  return sorted;
+}
 
 
 
 class FreshFood extends StatefulWidget {
-  FreshFood({super.key});
+  const FreshFood({super.key});
 
   @override
   State<FreshFood> createState() => _FreshFoodState();
@@ -75,52 +90,141 @@ class _FreshFoodState extends State<FreshFood> {
   //   }
   // }
 
+
+  // List<Widget> getFoodList() {
+  //   List<Widget> foodItems = [];
+  //   for(int i = 0; i < allFoodItems.length; ++i) {
+  //     foodItems.add(
+  //       FoodItemContainer(
+  //         foodItem: allFoodItems[i],
+  //         height: 50,
+  //         // color: const Color.fromARGB(255, 17, 212, 212),
+  //         decoration: BoxDecoration(
+  //           border: Border.all(
+  //             color: Colors.white
+  //           ),
+  //         ),
+  //         child: Row(
+  //           children: [
+  //             ElevatedButton(onPressed: () => print('xd'), child: Icon(Icons.info)),
+  //             Text(allFoodItems[i].getDisplayString()),
+  //           ],
+  //         ),
+  //       )
+  //     );
+
+  //     foodItems.add(FoodItemContainer(hq))
+  //   }
+  //   return foodItems;
+  // }
+
+
+  
+
+  void testMethod() {
+    return;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          // backgroundColor: Color.fromARGB(255, 133, 134, 167),
-          title: Center(child: Text('Fresh foods')),
-        ),
-        body: ListView(
-          children: [
-            for(int i = 0; i < allFoodItems.length; ++i)
-              Container(
-                height: 50,
-                // color: const Color.fromARGB(255, 17, 212, 212),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.white
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    ElevatedButton(onPressed: () => print('xd'), child: Icon(Icons.info)),
-                    Text(allFoodItems[i].getDisplayString()),
-                  ],
-                ),
-              ),
-            ElevatedButton(
-              onPressed:() {
-                addCustomFoodItem(allFoodItems);
-              },
-              // onPressed: () => print('press'),
-              child: Icon(Icons.add_rounded)
-            ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => {
-            Navigator.push(context,MaterialPageRoute(builder: (context) => FormWidget()))
-          }, 
-          // backgroundColor: Color.fromARGB(255, 104, 71, 123),
-          child: Icon(Icons.add),
-        ),
-        bottomNavigationBar: BottomNavigationBarWidget(),
-      );
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        // backgroundColor: Color.fromARGB(255, 133, 134, 167),
+        title: Center(
+            child: Row(
+              children: [
+                Text('Fresh foods'), 
+                ElevatedButton(onPressed: () => print('YEES'), child: Text('Sort by expiry date')
+                )
+              ]
+            )
+          ),
+      ),
+      body: ListView(
+        children: [
+          for(int i = 0; i < allFoodItems.length; ++i)
+            FoodItemWidget(foodItem: allFoodItems[i], onDelete: () => setState(() {}),),
+          ElevatedButton(
+            onPressed:() {
+              addCustomFoodItem(allFoodItems);
+            },
+            // onPressed: () => print('press'),
+            child: Icon(Icons.add_rounded)
+          ),
+          ElevatedButton(
+            onPressed:() {
+              setState(() {
+                allFoodItems = sortByExpiryDate(); //no reason for this to be in here tbh :p
+              });
+            },
+            // onPressed: () => print('press'),
+            child: Icon(Icons.accessibility)
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => {
+          Navigator.push(context,MaterialPageRoute(builder: (context) => FormWidget()))
+        }, 
+        // backgroundColor: Color.fromARGB(255, 104, 71, 123),
+        child: Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomNavigationBarWidget(),
+    );
   }
 }
+
+class FoodItemWidget extends StatefulWidget {
+  const FoodItemWidget({required this.foodItem, super.key, required this.onDelete});
+
+  final FoodItem foodItem;
+  final VoidCallback onDelete;
+
+  @override
+  State<FoodItemWidget> createState() => _FoodItemWidgetState();
+}
+
+class _FoodItemWidgetState extends State<FoodItemWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 50,
+      // color: const Color.fromARGB(255, 17, 212, 212),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.white
+        ),
+      ),
+      child: Row(
+        children: [
+          ElevatedButton(
+            onPressed: () => {
+              allFoodItems.removeAt(widget.foodItem.index),
+              widget.onDelete(),
+              // setState(() {
+                
+              // }),
+              // print(allFoodItems[foodItem.index].name + foodItem.name)
+            },
+            child: Icon(Icons.info)
+          ),
+          Text(widget.foodItem.getDisplayString()),
+        ],
+      ),
+    );
+  }
+}
+
+// class FoodItemContainer extends Container {
+//   FoodItemContainer({required this.foodItem,super.key});
+  
+//   final FoodItem foodItem;
+  
+//   FoodItem get getFoodItem {
+//     return foodItem;
+//   }
+// }
 
 class BottomNavigationBarWidget extends StatelessWidget {
   const BottomNavigationBarWidget({super.key});
@@ -171,21 +275,22 @@ FoodItem getRandomFoodItem() {
     'Rice', 'Pasta', 'Beans', 'Cereal', 'Fish',
     'Steak', 'Orange', 'Lettuce', 'Broccoli', 'Potato',
     'Pizza', 'Burger', 'Ice Cream', 'Cake', 'Soup',
-    'Sausage', 'Bacon', 'Mushroom', 'Onion', 'Peach'
+    'Sausage', 'Bacon', 'Mushroom', 'Onion', 'Peach', 'Eren', 'Elias'
   ];
   
-  return FoodItem(name: foodNames[Random().nextInt(30)], expiryDate: expiryDate);
+  return FoodItem(name: foodNames[Random().nextInt(30)], expiryDate: expiryDate, index: allFoodItems.length);
 }
 
 
 class FoodItem {
   final String name;
   final DateTime expiryDate;
+  final int index;
 
   final DateTime todayOnlyDay = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
   int get daysUntilExpiry => expiryDate.difference(todayOnlyDay).inDays; // +1 coz otherwise tomorrow is in 0 days //may be wrong lol 
-  FoodItem({required this.name, required this.expiryDate});
+  FoodItem({required this.name, required this.expiryDate, required this.index});
 
 
   String getDisplayString() {
@@ -287,7 +392,7 @@ class _FormWidgetState extends State<FormWidget> {
                 onPressed: () => {
                   print(foodName.length),
                   if(foodName.isNotEmpty) {
-                    allFoodItems.add(FoodItem(name: foodName, expiryDate: foodDate)),
+                    allFoodItems.add(FoodItem(name: foodName, expiryDate: foodDate, index: allFoodItems.length)),
                   },
                   // runApp(FreshFood())
                   Navigator.push(context,MaterialPageRoute(builder: (context) => FreshFood()))
@@ -301,10 +406,6 @@ class _FormWidgetState extends State<FormWidget> {
     );
   }
 }
-
-
-
-
 
 
 
@@ -328,21 +429,21 @@ class _ExpiredFoodsState extends State<ExpiredFoods> {
       body: ListView(
         children: [
           for(int i = 0; i < expiredFoodItems.length; ++i)
-          Container(
-            height: 50,
-            // color: const Color.fromARGB(255, 17, 212, 212),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.white
+            Container(
+              height: 50,
+              // color: const Color.fromARGB(255, 17, 212, 212),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.white
+                ),
+              ),
+              child: Row(
+                children: [
+                  ElevatedButton(onPressed: () => print('xd'), child: Icon(Icons.info)),
+                  Text(expiredFoodItems[i].getDisplayString()),
+                ],
               ),
             ),
-            child: Row(
-              children: [
-                ElevatedButton(onPressed: () => print('xd'), child: Icon(Icons.info)),
-                Text(expiredFoodItems[i].getDisplayString()),
-              ],
-            ),
-          ),
         ],
       ),
     );
