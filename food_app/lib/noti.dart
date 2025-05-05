@@ -13,7 +13,7 @@ class Noti {
 
     // for android
     const initSettingsAndroid = 
-    AndroidInitializationSettings('@mipmap/logo');
+    AndroidInitializationSettings('@mipmap/ic_launcher');
 
     //For iOS
     const initSettingIOS = DarwinInitializationSettings(
@@ -59,7 +59,7 @@ class Noti {
       id, 
       title, 
       body, 
-    /* const */ NotificationDetails(),
+    /* const */ notificationDetails(),
     );
   }
 

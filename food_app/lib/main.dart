@@ -4,12 +4,15 @@ import 'package:food_app/noti.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  Noti().initNotification();
-  runApp(const MainApp());
+  final noti = Noti(); 
+  noti.initNotification();
+  runApp(MainApp(noti: noti));
 }
 
 class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+  final Noti noti;
+  
+  MainApp({super.key, required this.noti});
 
   @override
   Widget build(BuildContext context) {
@@ -18,8 +21,8 @@ class MainApp extends StatelessWidget {
         body: Center(
           child: ElevatedButton(
             onPressed: () {
-              // print('showing noti');
-              Noti().showNotification(
+              print('showing noti');
+              noti.showNotification(
                 title: 'titel',
                 body: 'her står der tekst',
               );
