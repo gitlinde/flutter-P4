@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:mysql1/mysql1.dart';
+import 'package:pocketbase/pocketbase.dart';
 import 'dart:math';
-// import ''
-
 
 // TODO - the more up the TODO, the more urgent
 
-// make db connection
+// REMOVE INDEX, replace with id, make delete work (search for specific id?)
+// add foodItem to database
+
 // change index in FoodItem to a db id
 // note; the current delete bug gets fixed with db connection
 // add button to delete
 // add edit food button
-
 
 // be able to add to the list of foods
 // // how to pick date for it?
@@ -21,43 +20,52 @@ import 'dart:math';
 
 // maybe just look at MoSCoW and add from there.
 
-void main() => runApp(
-  MaterialApp(
-    home: FreshFood(),
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-      seedColor: Color.fromARGB(255, 60, 255, 0),brightness: Brightness.dark),
+void main() async {
+  runApp(
+    MaterialApp(
+      home: FreshFood(),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+        seedColor: Color.fromARGB(255, 60, 255, 0),brightness: Brightness.dark),
+      ),
     ),
-  ),
-);
-
-
-
-
-
-Future<String> getFirstRow(/*ConnectionSettings settings*/) async {
-
-  var settings = ConnectionSettings(
-    host: 'localhost', 
-    port: 3306,
-    user: 'root',
-    password: 'KENDATABASE123',
-    db: 'food_db'
   );
-  var connection = await MySqlConnection.connect(settings);
-  var results = await connection.query('select name from food');
-  await connection.close();
-  print (results.first.toString());
-  return results.first.toString();
+
+  
+  List<FoodItem> foodItems = await fetchAllFoodItems();
+  print(foodItems[0].getDisplayString());
+  print(foodItems[1].getDisplayString());
 }
 
-// var conn = await MySqlConnection.connect(settings);
+Future<List<FoodItem>> fetchAllFoodItems() async {
+  List<FoodItem> foodItems = [];
+  
 
+  //connectTo1 is ngrok
+  String connectTo1 = 'https://c8de-192-38-10-74.ngrok-free.app';
+  String connectTo2 = 'http://127.0.0.1:8090';
+  String connectTo3 = 'http://localhost:8090';
+
+
+  final records = await PocketBase(connectTo1).collection('food').getFullList();
+
+  for(int i = 0; i < records.length; ++i) {
+    String foodName = records[i].get('name');
+    DateTime foodExpiryDate = DateTime.parse(records[i].get('expiry_date'));
+    String foodId = records[i].get('id');
+
+    FoodItem foodItem = FoodItem(name: foodName, expiryDate: foodExpiryDate, id: foodId, index: 0);
+
+    foodItems.add(foodItem);
+  }
+
+  return foodItems;
+}
 
 List<FoodItem> allFoodItems = []; 
 
-List<FoodItem> freshFoodItems = []; 
+// List<FoodItem> freshFoodItems = []; 
 
 List<FoodItem> expiredFoodItems = []; 
 
@@ -72,8 +80,6 @@ List<FoodItem> sortByExpiryDate() {
 
   return sorted;
 }
-
-
 
 class FreshFood extends StatefulWidget {
   const FreshFood({super.key});
@@ -105,46 +111,6 @@ class _FreshFoodState extends State<FreshFood> {
       addFoodItems();
     }
   }
-
-
-  // DateTime addOrSubtractDay(int days, bool subtract, DateTime date) {
-  //   if(subtract) {
-  //     date.add
-  //   } else {
-
-  //   }
-  // }
-
-
-  // List<Widget> getFoodList() {
-  //   List<Widget> foodItems = [];
-  //   for(int i = 0; i < allFoodItems.length; ++i) {
-  //     foodItems.add(
-  //       FoodItemContainer(
-  //         foodItem: allFoodItems[i],
-  //         height: 50,
-  //         // color: const Color.fromARGB(255, 17, 212, 212),
-  //         decoration: BoxDecoration(
-  //           border: Border.all(
-  //             color: Colors.white
-  //           ),
-  //         ),
-  //         child: Row(
-  //           children: [
-  //             ElevatedButton(onPressed: () => print('xd'), child: Icon(Icons.info)),
-  //             Text(allFoodItems[i].getDisplayString()),
-  //           ],
-  //         ),
-  //       )
-  //     );
-
-  //     foodItems.add(FoodItemContainer(hq))
-  //   }
-  //   return foodItems;
-  // }
-
-
-  
 
   void testMethod() {
     return;
@@ -242,16 +208,6 @@ class _FoodItemWidgetState extends State<FoodItemWidget> {
   }
 }
 
-// class FoodItemContainer extends Container {
-//   FoodItemContainer({required this.foodItem,super.key});
-  
-//   final FoodItem foodItem;
-  
-//   FoodItem get getFoodItem {
-//     return foodItem;
-//   }
-// }
-
 class BottomNavigationBarWidget extends StatelessWidget {
   const BottomNavigationBarWidget({super.key});
 
@@ -301,10 +257,10 @@ FoodItem getRandomFoodItem() {
     'Rice', 'Pasta', 'Beans', 'Cereal', 'Fish',
     'Steak', 'Orange', 'Lettuce', 'Broccoli', 'Potato',
     'Pizza', 'Burger', 'Ice Cream', 'Cake', 'Soup',
-    'Sausage', 'Bacon', 'Mushroom', 'Onion', 'Peach', 'Eren', 'Elias'
+    'Sausage', 'Bacon', 'Mushroom', 'Onion', 'Peach',
   ];
   
-  return FoodItem(name: foodNames[Random().nextInt(30)], expiryDate: expiryDate, index: allFoodItems.length);
+  return FoodItem(name: foodNames[Random().nextInt(30)], expiryDate: expiryDate, index: allFoodItems.length, id: 'TEMPORARY');
 }
 
 
@@ -312,11 +268,12 @@ class FoodItem {
   final String name;
   final DateTime expiryDate;
   final int index;
+  final String id;
 
   final DateTime todayOnlyDay = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
   int get daysUntilExpiry => expiryDate.difference(todayOnlyDay).inDays; // +1 coz otherwise tomorrow is in 0 days //may be wrong lol 
-  FoodItem({required this.name, required this.expiryDate, required this.index});
+  FoodItem({required this.name, required this.expiryDate, required this.index, required this.id});
 
 
   String getDisplayString() {
@@ -327,11 +284,8 @@ class FoodItem {
     String dayString = dateStrings[2];
     String monthString = dateStrings[1];
     String yearString = dateStrings[0];
-    
 
     return name + " - " + dayString + "/" + monthString + "/" + yearString + " - Expires in " + daysUntilExpiry.toString() + " days";
-
-    // return name + " - " + expiryDate.toString().split(' ')[0] + " - Expires in " + daysUntilExpiry.toString() + " days;
   }
 }
 
@@ -418,7 +372,7 @@ class _FormWidgetState extends State<FormWidget> {
                 onPressed: () => {
                   print(foodName.length),
                   if(foodName.isNotEmpty) {
-                    allFoodItems.add(FoodItem(name: foodName, expiryDate: foodDate, index: allFoodItems.length)),
+                    allFoodItems.add(FoodItem(name: foodName, expiryDate: foodDate, index: allFoodItems.length, id: 'TEMPORARY')),
                   },
                   // runApp(FreshFood())
                   Navigator.push(context,MaterialPageRoute(builder: (context) => FreshFood()))
