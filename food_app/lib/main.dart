@@ -4,23 +4,26 @@ import 'dart:math';
 
 // TODO - the more up the TODO, the more urgent
 
-// REMOVE INDEX, replace with id, make delete work (search for specific id?)
-// add foodItem to database
+// Add edit / info button
+// Move the delete button to the right and change icon
+// When updating allFoodItems list, put expired items into the expiredFoodItems list
+// Make the form / user input a lot more
+// Make the sort button sort, show asc/desc and have sort the list by default
 
-// change index in FoodItem to a db id
-// note; the current delete bug gets fixed with db connection
-// add button to delete
-// add edit food button
+// split list into two later for expired foods
+List<FoodItem> allFoodItems = []; 
+// List<FoodItem> freshFoodItems = [];
+List<FoodItem> expiredFoodItems = []; 
 
-// be able to add to the list of foods
-// // how to pick date for it?
+int selectedDestinationIndex = 0;
 
-// view the foods
-// add expired foods
+PocketBase pocketBase = PocketBase('http://localhost:8090');
 
-// maybe just look at MoSCoW and add from there.
+bool sortByDescending = true;
 
 void main() async {
+  allFoodItems.addAll(await fetchAllFoodItems());
+  
   runApp(
     MaterialApp(
       home: FreshFood(),
@@ -31,31 +34,19 @@ void main() async {
       ),
     ),
   );
-
-  
-  List<FoodItem> foodItems = await fetchAllFoodItems();
-  print(foodItems[0].getDisplayString());
-  print(foodItems[1].getDisplayString());
 }
 
 Future<List<FoodItem>> fetchAllFoodItems() async {
   List<FoodItem> foodItems = [];
-  
 
-  //connectTo1 is ngrok
-  String connectTo1 = 'https://c8de-192-38-10-74.ngrok-free.app';
-  String connectTo2 = 'http://127.0.0.1:8090';
-  String connectTo3 = 'http://localhost:8090';
-
-
-  final records = await PocketBase(connectTo1).collection('food').getFullList();
+  final records = await pocketBase.collection('food').getFullList();
 
   for(int i = 0; i < records.length; ++i) {
     String foodName = records[i].get('name');
     DateTime foodExpiryDate = DateTime.parse(records[i].get('expiry_date'));
     String foodId = records[i].get('id');
 
-    FoodItem foodItem = FoodItem(name: foodName, expiryDate: foodExpiryDate, id: foodId, index: 0);
+    FoodItem foodItem = FoodItem(name: foodName, expiryDate: foodExpiryDate, id: foodId);
 
     foodItems.add(foodItem);
   }
@@ -63,21 +54,39 @@ Future<List<FoodItem>> fetchAllFoodItems() async {
   return foodItems;
 }
 
-List<FoodItem> allFoodItems = []; 
+void deleteFoodItem(String? foodItemId) {
+  // the ! is used since we know every foodItem has an id. This is dumb, but idk
+  pocketBase.collection('food').delete(foodItemId!);
+}
 
-// List<FoodItem> freshFoodItems = []; 
+/// Returns the PocketBase id of the newly created food item.
+Future<String> pushFoodItemToDb(FoodItem foodItem) async {
+  final foodItemPushedToDb = await pocketBase.collection('food').create(
+    body: {
+      'name': foodItem.name,
+      'expiry_date': foodItem.expiryDate.toIso8601String(),
+    }
+  );
 
-List<FoodItem> expiredFoodItems = []; 
+  return foodItemPushedToDb.id;
+}
 
+/// Adds a foodItem to allFoodItems list and pushes it to the db.
+Future<void> addFoodItem(FoodItem foodItem) async {
+  String foodItemId = await pushFoodItemToDb(foodItem);
+  foodItem.id = foodItemId;
+  allFoodItems.add(foodItem);
+}
 
-int selectedDestinationIndex = 0;
-
-// Descending
-List<FoodItem> sortByExpiryDate() {
+List<FoodItem> sortByExpiryDate(bool descending) {
   List<FoodItem> sorted = allFoodItems;
 
-  sorted.sort((a,b) => a.daysUntilExpiry.compareTo(b.daysUntilExpiry));
+  if(descending) {
+    sorted.sort((a,b) => a.daysUntilExpiry.compareTo(b.daysUntilExpiry));
+    return sorted;
+  }
 
+  sorted.sort((a,b) => b.daysUntilExpiry.compareTo(a.daysUntilExpiry));
   return sorted;
 }
 
@@ -89,31 +98,18 @@ class FreshFood extends StatefulWidget {
 }
 
 class _FreshFoodState extends State<FreshFood> {
-
-  void addCustomFoodItem(List<FoodItem> foodItems) {
+  Future<void> addRandomFoodItem(List<FoodItem> foodItems) async {
+    await addFoodItem(getRandomFoodItem());
     setState(() =>
-      foodItems.add(getRandomFoodItem())
+      print('added random food item to db'),
     );
-  }
-  // List<FoodItem> foodItems = [];
-
-  void addFoodItems() {
-    for(int i = 0; i < 1; ++i) {
-      allFoodItems.add(getRandomFoodItem());
-      expiredFoodItems.add(getRandomFoodItem());
-    }
   }
 
   @override
   void initState() {
     super.initState();
-    if(allFoodItems.isEmpty) {
-      addFoodItems();
-    }
-  }
-
-  void testMethod() {
-    return;
+    setState(() {}); // i think i need this
+    // put expired food items in expired category
   }
 
   @override
@@ -138,7 +134,7 @@ class _FreshFoodState extends State<FreshFood> {
             FoodItemWidget(foodItem: allFoodItems[i], onDelete: () => setState(() {}),),
           ElevatedButton(
             onPressed:() {
-              addCustomFoodItem(allFoodItems);
+              addRandomFoodItem(allFoodItems);
               // getFirstRow();
             },
             // onPressed: () => print('press'),
@@ -147,8 +143,10 @@ class _FreshFoodState extends State<FreshFood> {
           ElevatedButton(
             onPressed:() {
               setState(() {
-                allFoodItems = sortByExpiryDate(); //no reason for this to be in here tbh :p
+                allFoodItems = sortByExpiryDate(sortByDescending); //no reason for this to be in setState, just needs to be onPressed
               });
+              sortByDescending = !sortByDescending;
+              // setState(()=>{}); can be empty like this
             },
             // onPressed: () => print('press'),
             child: Icon(Icons.accessibility)
@@ -192,7 +190,9 @@ class _FoodItemWidgetState extends State<FoodItemWidget> {
         children: [
           ElevatedButton(
             onPressed: () => {
-              allFoodItems.removeAt(widget.foodItem.index),
+              // allFoodItems.removeAt(widget.foodItem.index), //REMOVE AT ID
+              allFoodItems.removeWhere((foodInList) => foodInList.id == widget.foodItem.id),
+              deleteFoodItem(widget.foodItem.id), 
               widget.onDelete(),
               // setState(() {
                 
@@ -242,14 +242,13 @@ class BottomNavigationBarWidget extends StatelessWidget {
   }
 }
 
-
+// I'm a bit annoyed that the DateTime.now() saves what time of day it is as well. But it doesn't matter.
 FoodItem getRandomFoodItem() {
 
   DateTime expiryDate = DateTime.now();
 
   final int randomInt = Random().nextInt(15);
   expiryDate = DateTime.now().add(Duration(days: randomInt));
-
 
   List<String> foodNames = [
     'Apple', 'Banana', 'Bread', 'Cheese', 'Carrot',
@@ -260,20 +259,20 @@ FoodItem getRandomFoodItem() {
     'Sausage', 'Bacon', 'Mushroom', 'Onion', 'Peach',
   ];
   
-  return FoodItem(name: foodNames[Random().nextInt(30)], expiryDate: expiryDate, index: allFoodItems.length, id: 'TEMPORARY');
+  return FoodItem(name: foodNames[Random().nextInt(30)], expiryDate: expiryDate);
 }
 
 
 class FoodItem {
   final String name;
   final DateTime expiryDate;
-  final int index;
-  final String id;
+  // final int index;
+  String? id;
 
   final DateTime todayOnlyDay = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
   int get daysUntilExpiry => expiryDate.difference(todayOnlyDay).inDays; // +1 coz otherwise tomorrow is in 0 days //may be wrong lol 
-  FoodItem({required this.name, required this.expiryDate, required this.index, required this.id});
+  FoodItem({required this.name, required this.expiryDate, this.id});
 
 
   String getDisplayString() {
@@ -290,8 +289,6 @@ class FoodItem {
 }
 
 
-
-
 class FormWidget extends StatefulWidget {
   const FormWidget({super.key});
 
@@ -302,7 +299,9 @@ class FormWidget extends StatefulWidget {
 class _FormWidgetState extends State<FormWidget> {
 
   String foodName = '';
-  DateTime foodDate = DateTime.now();
+
+  // terrible name for a variable
+  DateTime foodExpiryDate = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
@@ -352,8 +351,8 @@ class _FormWidgetState extends State<FormWidget> {
                     
                         DateTime date = DateTime(int.parse(yyyy), int.parse(mm), int.parse(dd));
                     
-                        foodDate = date;
-                        print(foodDate);
+                        foodExpiryDate = date;
+                        print(foodExpiryDate);
                       },
                       decoration: InputDecoration(
                         // hintText: 'dd/mm/yyyy',
@@ -363,16 +362,16 @@ class _FormWidgetState extends State<FormWidget> {
                     ),
                   ),
                   ElevatedButton(onPressed: () {
-                      print('plus 1');
-                    }, child: Icon(Icons.exposure_plus_1)),
+                    print('plus 1');
+                  }, child: Icon(Icons.exposure_plus_1)),
                  ]
                ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () => {
+                onPressed: () async => {
                   print(foodName.length),
                   if(foodName.isNotEmpty) {
-                    allFoodItems.add(FoodItem(name: foodName, expiryDate: foodDate, index: allFoodItems.length, id: 'TEMPORARY')),
+                    await addFoodItem(FoodItem(name: foodName, expiryDate: foodExpiryDate)),
                   },
                   // runApp(FreshFood())
                   Navigator.push(context,MaterialPageRoute(builder: (context) => FreshFood()))
