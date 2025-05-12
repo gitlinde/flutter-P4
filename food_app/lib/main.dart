@@ -1,6 +1,9 @@
+//import 'dart:nativewrappers/_internal/vm/lib/ffi_native_type_patch.dart';
+
 import 'package:flutter/material.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'dart:math';
+
 
 // TODO - the more up the TODO, the more urgent
 
@@ -17,7 +20,11 @@ List<FoodItem> expiredFoodItems = [];
 
 int selectedDestinationIndex = 0;
 
-PocketBase pocketBase = PocketBase('http://localhost:8090');
+/// The margin on the home screen from the left and right 'walls' of the screen
+double homeMargin = 30 ;
+
+// RUN POCKETBASE: pocketbase.exe serve --http="0.0.0.0:8090"
+PocketBase pocketBase = PocketBase('http://192.168.0.155:8090');
 
 bool sortByDescending = true;
 
@@ -55,7 +62,7 @@ Future<List<FoodItem>> fetchAllFoodItems() async {
 }
 
 void deleteFoodItem(String? foodItemId) {
-  // the ! is used since we know every foodItem has an id. This is dumb, but idk
+  // the ! is used since we know every foodItem has an id. Probably better to have error handling
   pocketBase.collection('food').delete(foodItemId!);
 }
 
@@ -116,12 +123,14 @@ class _FreshFoodState extends State<FreshFood> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: homeMargin,
         automaticallyImplyLeading: false,
         // backgroundColor: Color.fromARGB(255, 133, 134, 167),
         title: Center(
             child: Row(
               children: [
                 Text('Fresh foods'), 
+                Spacer(),
                 ElevatedButton(onPressed: () => print('YEES'), child: Text('Sort by expiry date')
                 )
               ]
@@ -140,17 +149,17 @@ class _FreshFoodState extends State<FreshFood> {
             // onPressed: () => print('press'),
             child: Icon(Icons.add_rounded)
           ),
-          ElevatedButton(
-            onPressed:() {
-              setState(() {
-                allFoodItems = sortByExpiryDate(sortByDescending); //no reason for this to be in setState, just needs to be onPressed
-              });
-              sortByDescending = !sortByDescending;
-              // setState(()=>{}); can be empty like this
-            },
-            // onPressed: () => print('press'),
-            child: Icon(Icons.accessibility)
-          ),
+          // ElevatedButton(
+          //   onPressed:() {
+          //     setState(() {
+          //       allFoodItems = sortByExpiryDate(sortByDescending); //no reason for this to be in setState, just needs to be onPressed
+          //     });
+          //     sortByDescending = !sortByDescending;
+          //     // setState(()=>{}); can be empty like this
+          //   },
+          //   // onPressed: () => print('press'),
+          //   child: Icon(Icons.accessibility)
+          // ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -178,32 +187,39 @@ class FoodItemWidget extends StatefulWidget {
 class _FoodItemWidgetState extends State<FoodItemWidget> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 50,
-      // color: const Color.fromARGB(255, 17, 212, 212),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.white
-        ),
-      ),
-      child: Row(
-        children: [
-          ElevatedButton(
-            onPressed: () => {
-              // allFoodItems.removeAt(widget.foodItem.index), //REMOVE AT ID
-              allFoodItems.removeWhere((foodInList) => foodInList.id == widget.foodItem.id),
-              deleteFoodItem(widget.foodItem.id), 
-              widget.onDelete(),
-              // setState(() {
-                
-              // }),
-              // print(allFoodItems[foodItem.index].name + foodItem.name)
-            },
-            child: Icon(Icons.info)
+    return Row(
+      children: [
+        SizedBox(width: homeMargin),
+        Expanded(
+          child: Container( 
+            height: 50,
+            // color: const Color.fromARGB(255, 17, 212, 212),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.white
+              ),
+            ),
+            child: Row(
+              children: [
+                SizedBox(width: 15),
+                Text(widget.foodItem.getDisplayString()),
+                Spacer(),
+                ElevatedButton(
+                  onPressed: () => {
+                    allFoodItems.removeWhere((foodInList) => foodInList.id == widget.foodItem.id),
+                    deleteFoodItem(widget.foodItem.id), 
+                    widget.onDelete(),
+                    // print(allFoodItems[foodItem.index].name + foodItem.name)
+                  },
+                  child: Icon(Icons.delete)
+                ),
+                SizedBox(width: 10)
+              ],
+            ),
           ),
-          Text(widget.foodItem.getDisplayString()),
-        ],
-      ),
+        ),
+        SizedBox(width: homeMargin)
+      ]
     );
   }
 }
