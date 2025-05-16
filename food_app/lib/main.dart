@@ -1,17 +1,46 @@
-//import 'dart:nativewrappers/_internal/vm/lib/ffi_native_type_patch.dart';
-
 import 'package:flutter/material.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'dart:math';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:unixtime/unixtime.dart';
 
+// from flutter local notification docs https://pub.dev/packages/flutter_local_notifications
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+
+void debugMethod() {
+  print('DEBUGGING!!');
+}
 
 // TODO - the more up the TODO, the more urgent
+
+// Add notification package
+// Initialize notification package variables
+// Make a notification occur at a specific time
+  // import timezone, use zonedSchedule
+
+// Each time a food item is added; schedule that item as a notification
+// Each time a food item is deleted; clear all scheduled notifications
+
+// Show asc/desc and have sort the list by default
+
+// Make the form / user input more user friendly
+
 
 // Add edit / info button
 // Move the delete button to the right and change icon
 // When updating allFoodItems list, put expired items into the expiredFoodItems list
-// Make the form / user input a lot more
-// Make the sort button sort, show asc/desc and have sort the list by default
+
+
+
+
+
+
+
+final FlutterLocalNotificationsPlugin localNotifications = FlutterLocalNotificationsPlugin();
+
+
 
 // split list into two later for expired foods
 List<FoodItem> allFoodItems = []; 
@@ -21,14 +50,35 @@ List<FoodItem> expiredFoodItems = [];
 int selectedDestinationIndex = 0;
 
 /// The margin on the home screen from the left and right 'walls' of the screen
-double homeMargin = 30 ;
+double homeMargin = 20;
 
 // RUN POCKETBASE: pocketbase.exe serve --http="0.0.0.0:8090"
 PocketBase pocketBase = PocketBase('http://192.168.0.155:8090');
+// PocketBase pocketBase = PocketBase('http://localhost:8090');
 
 bool sortByDescending = true;
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //tz for timezones, initialize it
+  tz.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('Europe/Copenhagen')); //hardcoded
+
+  // openExactAlarmSettings();
+  
+  
+  
+  if(await Permission.notification.isDenied) {
+    await Permission.notification.request();
+  }
+
+
+
+
+
+  await localNotifications.initialize(InitializationSettings(android: AndroidInitializationSettings('notif_icon')));
+
   allFoodItems.addAll(await fetchAllFoodItems());
   
   runApp(
@@ -42,6 +92,29 @@ void main() async {
     ),
   );
 }
+
+void scheduleNotification(DateTime time, FoodItem foodItem) async {
+  // FoodItem has an expiry date, so maybe we only need the foodItem?
+
+  final tzDateTime = tz.TZDateTime.from(time, tz.getLocation('Europe/Copenhagen'));
+
+  
+
+  await localNotifications.zonedSchedule(
+    DateTime.now().unixtime, //generate a unique id https://pub.dev/documentation/unixtime/latest/
+    'yo playa',
+    'notification at: ',
+    tzDateTime.add(Duration(seconds: 5)),
+    NotificationDetails(android: AndroidNotificationDetails(
+      'channel_id',
+      'Basic Notifications',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+    )),
+    androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle
+  );
+}
+
 
 Future<List<FoodItem>> fetchAllFoodItems() async {
   List<FoodItem> foodItems = [];
@@ -80,6 +153,7 @@ Future<String> pushFoodItemToDb(FoodItem foodItem) async {
 
 /// Adds a foodItem to allFoodItems list and pushes it to the db.
 Future<void> addFoodItem(FoodItem foodItem) async {
+  scheduleNotification(DateTime.now().add(Duration(seconds: 15)), FoodItem(name: "mong", expiryDate: DateTime(2020)));
   String foodItemId = await pushFoodItemToDb(foodItem);
   foodItem.id = foodItemId;
   allFoodItems.add(foodItem);
@@ -126,22 +200,29 @@ class _FreshFoodState extends State<FreshFood> {
         titleSpacing: homeMargin,
         automaticallyImplyLeading: false,
         // backgroundColor: Color.fromARGB(255, 133, 134, 167),
-        title: Center(
-            child: Row(
-              children: [
-                Text('Fresh foods'), 
-                Spacer(),
-                ElevatedButton(onPressed: () => print('YEES'), child: Text('Sort by expiry date')
-                )
-              ]
-            )
-          ),
+        title: Row( //could be wrapped in Center?
+          children: [
+            Text('Fresh foods'), 
+            Spacer(),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  allFoodItems = sortByExpiryDate(sortByDescending); //no reason for this to be in setState, just needs to be onPressed
+                });
+                sortByDescending = !sortByDescending;
+                // setState(()=>{}); can be empty like this
+              },
+              child: Text('Sort by expiry date')
+            ),
+            if(sortByDescending) Text("⬇️") else Text("⬆️")
+          ]
+        ),
       ),
       body: ListView(
         children: [
           for(int i = 0; i < allFoodItems.length; ++i)
             FoodItemWidget(foodItem: allFoodItems[i], onDelete: () => setState(() {}),),
-          ElevatedButton(
+          if(false) ElevatedButton( 
             onPressed:() {
               addRandomFoodItem(allFoodItems);
               // getFirstRow();
@@ -149,17 +230,6 @@ class _FreshFoodState extends State<FreshFood> {
             // onPressed: () => print('press'),
             child: Icon(Icons.add_rounded)
           ),
-          // ElevatedButton(
-          //   onPressed:() {
-          //     setState(() {
-          //       allFoodItems = sortByExpiryDate(sortByDescending); //no reason for this to be in setState, just needs to be onPressed
-          //     });
-          //     sortByDescending = !sortByDescending;
-          //     // setState(()=>{}); can be empty like this
-          //   },
-          //   // onPressed: () => print('press'),
-          //   child: Icon(Icons.accessibility)
-          // ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
