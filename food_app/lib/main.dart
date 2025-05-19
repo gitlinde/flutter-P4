@@ -91,41 +91,34 @@ String generateNotifEmoji() {
   return emojis[randomIndex];
 }
 
-
 void scheduleNotifications(/*DateTime time, */FoodItem foodItem) async {
-  // FoodItem has an expiry date, so maybe we only need the foodItem?
-
-  // Subtracts 3 days from expiry date (which is at midnight), then adds 9 hours. Notificaiton at 9 AM.
-  DateTime timeToNotify = foodItem.expiryDate.subtract(Duration(days: 3)).add(Duration(hours: 9));
-  
-  // Change notification to 5 seconds after adding to test
-  timeToNotify = DateTime.now().add(Duration(seconds: 5));
-  
-  final tzDateTime = tz.TZDateTime.from(timeToNotify, tz.getLocation('Europe/Copenhagen'));
-
-  
-  print("TIME OF NOTIFICATION: " + timeToNotify.toString());
-  
   // an error happens if the user uses a date which is less than 3 days (at 9am) before it expires
   // can be fixed in FoodItem class and by checking input
 
+  for(Notification notification in foodItem.notifications) {
+    DateTime fewSecondsFromNow = DateTime.now().add(Duration(seconds: 5));
 
-  await localNotifications.zonedSchedule(
-    DateTime.now().unixtime, //generate a unique id https://pub.dev/documentation/unixtime/latest/
-    // using string interpolation coz the blue lines made me angry
-    "${foodItem.name} is about to expire!",
-    "Your ${foodItem.name.toLowerCase()} expires in ${foodItem.daysUntilExpiry.toString()} days ${generateNotifEmoji()}",
-    tzDateTime.add(Duration(seconds: 5)),
-    NotificationDetails(android: AndroidNotificationDetails(
-      'channel_id',
-      'Basic Notifications',
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
-    )),
-    androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle
-  );
+    // This one is for testing
+    // tz.TZDateTime timeToNotify = tz.TZDateTime.from(fewSecondsFromNow, tz.getLocation('Europe/Copenhagen'));
 
-  
+    // This is the working version
+    tz.TZDateTime timeToNotify = tz.TZDateTime.from(notification.notificationDate, tz.getLocation('Europe/Copenhagen'));
+
+    await localNotifications.zonedSchedule(
+      DateTime.now().unixtime, //generate a unique id https://pub.dev/documentation/unixtime/latest/
+      // using string interpolation coz the blue lines made me angry
+      notification.titleMessage,
+      notification.subTitleMessage,
+      timeToNotify,
+      NotificationDetails(android: AndroidNotificationDetails(
+        'channel_id',
+        'Basic Notifications',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+      )),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle
+    );
+  }
 }
 
 
@@ -368,6 +361,23 @@ FoodItem getRandomFoodItem() {
   return FoodItem(name: foodNames[Random().nextInt(30)], expiryDate: expiryDate);
 }
 
+/// Notification class that contains info about a specific notifications date and message
+class Notification {
+  final DateTime notificationDate;
+  final int daysUntilExpiry;
+  final String foodName;
+
+  Notification({required this.notificationDate, required this.daysUntilExpiry, required this.foodName});
+
+  get titleMessage => "$foodName is about to expire!";
+  String get subTitleMessage {
+    if(daysUntilExpiry == 0) {
+      return "Your ${foodName.toLowerCase()} expires today! ${generateNotifEmoji()}";
+    } else {
+      return "Your ${foodName.toLowerCase()} expires in ${daysUntilExpiry.toString()} days ${generateNotifEmoji()}";
+    }
+  }
+}
 
 class FoodItem {
   final String name;
@@ -428,11 +438,7 @@ class FoodItem {
       // print(i);
       notificationDates.add(_getSingleNotifiactionDate(expiryDate, i));
     }
-    // notificationDates.add(_getSingleNotifiactionDate(expiryDate, 0));
-    // for(int i = dayDiff; i > 0; --i) {
-    //   print(i);
-    //   notificationDates.add(_getSingleNotifiactionDate(expiryDate, i));
-    // }
+
     print(notificationDates);
 
     return notificationDates;
@@ -499,24 +505,6 @@ class FoodItem {
           daysUntilExpiry: dayDiff,
           foodName: name,
         ); 
-    }
-  }
-}
-
-/// Notification class that contains info about a specific notifications date and message
-class Notification {
-  final DateTime notificationDate;
-  final int daysUntilExpiry;
-  final String foodName;
-
-  Notification({required this.notificationDate, required this.daysUntilExpiry, required this.foodName});
-
-  get titleMessage => "$foodName is about to expire!";
-  String get subTitleMessage {
-    if(daysUntilExpiry == 0) {
-      return "Your ${foodName.toLowerCase()} expires today! ${generateNotifEmoji()}";
-    } else {
-      return "Your ${foodName.toLowerCase()} expires in ${daysUntilExpiry.toString()} days ${generateNotifEmoji()}";
     }
   }
 }
