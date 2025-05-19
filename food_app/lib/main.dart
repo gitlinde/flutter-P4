@@ -93,17 +93,42 @@ void main() async {
   );
 }
 
-void scheduleNotification(DateTime time, FoodItem foodItem) async {
+
+String generateNotifEmoji() {
+  List<String> emojis = [
+    '😞', '😔', '😟', '😕', '🙁', '☹️', '😢', '😭', '😫', '😩',
+    '🥺', '😓', '😥', '😰', '😿', '🙀', '💔', '🫤', '😣', '😖',
+    '😬', '🥲', '😶‍🌫️', '😮‍💨', '😵', '😱', '💀', '😋', '🤓', '🤨'
+  ];
+  
+  // works because value of nextInt is >= 0 and < emojis.length. 
+  int randomIndex = Random().nextInt(emojis.length);
+
+  return emojis[randomIndex];
+}
+
+
+void scheduleNotification(/*DateTime time, */FoodItem foodItem) async {
   // FoodItem has an expiry date, so maybe we only need the foodItem?
 
-  final tzDateTime = tz.TZDateTime.from(time, tz.getLocation('Europe/Copenhagen'));
+  // Subtracts 3 days from expiry date (which is at midnight), then adds 9 hours. Notificaiton at 9 AM.
+  DateTime timeToNotify = foodItem.expiryDate.subtract(Duration(days: 3)).add(Duration(hours: 9));
+  
+  // Change notification to 5 seconds after adding to test
+  // timeToNotify = DateTime.now().add(Duration(seconds: 5));
+  
+  final tzDateTime = tz.TZDateTime.from(timeToNotify, tz.getLocation('Europe/Copenhagen'));
 
   
-
+  print("TIME OF NOTIFICATION: " + timeToNotify.toString());
+  
+  // an error happens if the user uses a date which is less than 3 days (at 9am) before it expires
+  // can be fixed in FoodItem class and by checking input
   await localNotifications.zonedSchedule(
     DateTime.now().unixtime, //generate a unique id https://pub.dev/documentation/unixtime/latest/
-    'yo playa',
-    'notification at: ',
+    // using string interpolation coz the yellow line made me angry
+    "${foodItem.name} is about to expire!",
+    "Your ${foodItem.name.toLowerCase()} expires in ${foodItem.daysUntilExpiry.toString()} days ${generateNotifEmoji()}",
     tzDateTime.add(Duration(seconds: 5)),
     NotificationDetails(android: AndroidNotificationDetails(
       'channel_id',
@@ -153,7 +178,7 @@ Future<String> pushFoodItemToDb(FoodItem foodItem) async {
 
 /// Adds a foodItem to allFoodItems list and pushes it to the db.
 Future<void> addFoodItem(FoodItem foodItem) async {
-  scheduleNotification(DateTime.now().add(Duration(seconds: 15)), FoodItem(name: "mong", expiryDate: DateTime(2020)));
+  scheduleNotification(foodItem);
   String foodItemId = await pushFoodItemToDb(foodItem);
   foodItem.id = foodItemId;
   allFoodItems.add(foodItem);
@@ -214,7 +239,8 @@ class _FreshFoodState extends State<FreshFood> {
               },
               child: Text('Sort by expiry date')
             ),
-            if(sortByDescending) Text("⬇️") else Text("⬆️")
+            if(sortByDescending) Icon(Icons.arrow_downward) else Icon(Icons.arrow_upward) //USE ICON
+            // if(sortByDescending) Text("⬇️") else Text("⬆️") //USE ICON
           ]
         ),
       ),
@@ -222,14 +248,14 @@ class _FreshFoodState extends State<FreshFood> {
         children: [
           for(int i = 0; i < allFoodItems.length; ++i)
             FoodItemWidget(foodItem: allFoodItems[i], onDelete: () => setState(() {}),),
-          if(false) ElevatedButton( 
-            onPressed:() {
-              addRandomFoodItem(allFoodItems);
-              // getFirstRow();
-            },
-            // onPressed: () => print('press'),
-            child: Icon(Icons.add_rounded)
-          ),
+          // if(false) ElevatedButton( 
+          //   onPressed:() {
+          //     addRandomFoodItem(allFoodItems);
+          //     // getFirstRow();
+          //   },
+          //   // onPressed: () => print('press'),
+          //   child: Icon(Icons.add_rounded)
+          // ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -322,7 +348,6 @@ class BottomNavigationBarWidget extends StatelessWidget {
             case 0: Navigator.push(context,MaterialPageRoute(builder: (context) => FreshFood()));
             case 1: Navigator.push(context,MaterialPageRoute(builder: (context) => ExpiredFoods()));
           }
-          print(value);
       },
     );
   }
@@ -438,7 +463,7 @@ class _FormWidgetState extends State<FormWidget> {
                         DateTime date = DateTime(int.parse(yyyy), int.parse(mm), int.parse(dd));
                     
                         foodExpiryDate = date;
-                        print(foodExpiryDate);
+                        // print(foodExpiryDate);
                       },
                       decoration: InputDecoration(
                         // hintText: 'dd/mm/yyyy',
@@ -457,6 +482,7 @@ class _FormWidgetState extends State<FormWidget> {
                 onPressed: () async => {
                   print(foodName.length),
                   if(foodName.isNotEmpty) {
+                    print("CURRENT EXPIRY: " + foodExpiryDate.toString()),
                     await addFoodItem(FoodItem(name: foodName, expiryDate: foodExpiryDate)),
                   },
                   // runApp(FreshFood())
