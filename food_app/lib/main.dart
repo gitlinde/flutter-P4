@@ -32,15 +32,7 @@ void debugMethod() {
 // Move the delete button to the right and change icon
 // When updating allFoodItems list, put expired items into the expiredFoodItems list
 
-
-
-
-
-
-
 final FlutterLocalNotificationsPlugin localNotifications = FlutterLocalNotificationsPlugin();
-
-
 
 // split list into two later for expired foods
 List<FoodItem> allFoodItems = []; 
@@ -64,18 +56,10 @@ void main() async {
   //tz for timezones, initialize it
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Europe/Copenhagen')); //hardcoded
-
-  // openExactAlarmSettings();
-  
-  
   
   if(await Permission.notification.isDenied) {
     await Permission.notification.request();
   }
-
-
-
-
 
   await localNotifications.initialize(InitializationSettings(android: AndroidInitializationSettings('notif_icon')));
 
@@ -108,14 +92,14 @@ String generateNotifEmoji() {
 }
 
 
-void scheduleNotification(/*DateTime time, */FoodItem foodItem) async {
+void scheduleNotifications(/*DateTime time, */FoodItem foodItem) async {
   // FoodItem has an expiry date, so maybe we only need the foodItem?
 
   // Subtracts 3 days from expiry date (which is at midnight), then adds 9 hours. Notificaiton at 9 AM.
   DateTime timeToNotify = foodItem.expiryDate.subtract(Duration(days: 3)).add(Duration(hours: 9));
   
   // Change notification to 5 seconds after adding to test
-  // timeToNotify = DateTime.now().add(Duration(seconds: 5));
+  timeToNotify = DateTime.now().add(Duration(seconds: 5));
   
   final tzDateTime = tz.TZDateTime.from(timeToNotify, tz.getLocation('Europe/Copenhagen'));
 
@@ -124,9 +108,11 @@ void scheduleNotification(/*DateTime time, */FoodItem foodItem) async {
   
   // an error happens if the user uses a date which is less than 3 days (at 9am) before it expires
   // can be fixed in FoodItem class and by checking input
+
+
   await localNotifications.zonedSchedule(
     DateTime.now().unixtime, //generate a unique id https://pub.dev/documentation/unixtime/latest/
-    // using string interpolation coz the yellow line made me angry
+    // using string interpolation coz the blue lines made me angry
     "${foodItem.name} is about to expire!",
     "Your ${foodItem.name.toLowerCase()} expires in ${foodItem.daysUntilExpiry.toString()} days ${generateNotifEmoji()}",
     tzDateTime.add(Duration(seconds: 5)),
@@ -138,6 +124,8 @@ void scheduleNotification(/*DateTime time, */FoodItem foodItem) async {
     )),
     androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle
   );
+
+  
 }
 
 
@@ -178,7 +166,18 @@ Future<String> pushFoodItemToDb(FoodItem foodItem) async {
 
 /// Adds a foodItem to allFoodItems list and pushes it to the db.
 Future<void> addFoodItem(FoodItem foodItem) async {
-  scheduleNotification(foodItem);
+  print(foodItem.notifications);
+
+  print("");
+  for(Notification notification in foodItem.notifications) {
+    print(notification.titleMessage);
+    print(notification.subTitleMessage);
+    print(notification.notificationDate);
+
+    print(" ");
+  }
+
+  scheduleNotifications(foodItem);
   String foodItemId = await pushFoodItemToDb(foodItem);
   foodItem.id = foodItemId;
   allFoodItems.add(foodItem);
@@ -325,10 +324,6 @@ class BottomNavigationBarWidget extends StatelessWidget {
 
   @override
   Widget build(context) {
-
-    // return BottomNavigationBar(items: [items])
-
-
     return NavigationBar(
       destinations: [
         NavigationDestination(
@@ -377,7 +372,8 @@ FoodItem getRandomFoodItem() {
 class FoodItem {
   final String name;
   final DateTime expiryDate;
-  // final int index;
+  late final List<Notification> notifications = _getNotifications(expiryDate);
+  
   String? id;
 
   final DateTime todayOnlyDay = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
@@ -395,10 +391,135 @@ class FoodItem {
     String monthString = dateStrings[1];
     String yearString = dateStrings[0];
 
+    // string interpolation would be better
     return name + " - " + dayString + "/" + monthString + "/" + yearString + " - Expires in " + daysUntilExpiry.toString() + " days";
+  }
+
+
+  List<Notification> _getNotifications(DateTime expiryDate) {
+    print("_getNotifications ran!");
+    final DateTime todayOnlyDay = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+    
+    expiryDate = DateTime(
+      expiryDate.year,
+      expiryDate.month,
+      expiryDate.day,
+    );
+    
+    int dayDiff = expiryDate.difference(todayOnlyDay).inDays;
+
+    if(dayDiff == 0) {
+      return [_getSingleNotifiactionDate(expiryDate, dayDiff)];
+    }
+    
+    List<Notification> notificationDates = [];
+
+    int cappedDayDiff = dayDiff;
+  
+    if(dayDiff > 3) {
+      cappedDayDiff = 3;
+    }
+    
+    for(int i = cappedDayDiff; i >= 0; --i) {
+      // print(i);
+      notificationDates.add(_getSingleNotifiactionDate(expiryDate, i));
+    }
+    // notificationDates.add(_getSingleNotifiactionDate(expiryDate, 0));
+    // for(int i = dayDiff; i > 0; --i) {
+    //   print(i);
+    //   notificationDates.add(_getSingleNotifiactionDate(expiryDate, i));
+    // }
+    print(notificationDates);
+
+    return notificationDates;
+  }
+
+  Notification _getSingleNotifiactionDate(DateTime expiryDate, int dayDiff) {
+    // dayDiff == 2 days until expiry -notify 1 day before
+    // dayDiff == 1 days until expiry -notify 0 days before (on the day)
+    // dayDiff == 0 it's expiry day; maybe notify in evening
+    if(dayDiff < 0) {
+      throw Exception("dayDiff under 0");
+    }
+
+    Notification? sameDayNotification;
+
+    final todayOnlyDay = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+    );
+
+    // if submitted on same day as expired, give notification 3 hours later,
+    // else: give notification on expiryDate at 9 AM
+    if(todayOnlyDay == expiryDate) {
+      sameDayNotification = Notification(
+        // we can use DateTime.now() here because expiryDate is same day as DateTime.now()
+        notificationDate: DateTime.now().add(Duration(hours: 3)), 
+        daysUntilExpiry: dayDiff,
+        foodName: name, 
+      );
+    } else {
+      sameDayNotification = Notification(
+        notificationDate: expiryDate.add(Duration(hours: 9)), 
+        daysUntilExpiry: dayDiff,
+        foodName: name, 
+      );
+    }
+
+    
+    switch (dayDiff) {
+      case 0:
+        return sameDayNotification;
+      case 1:
+        return Notification(
+          notificationDate: expiryDate.subtract(Duration(days: dayDiff)).add(Duration(hours: 9)), 
+          daysUntilExpiry: dayDiff,
+          foodName: name,
+        );
+      case 2:
+        return Notification(
+          notificationDate: expiryDate.subtract(Duration(days: dayDiff)).add(Duration(hours: 9)), 
+          daysUntilExpiry: dayDiff,
+          foodName: name,
+        ); 
+      case 3:
+        return Notification(
+          notificationDate: expiryDate.subtract(Duration(days: dayDiff)).add(Duration(hours: 9)), 
+          daysUntilExpiry: dayDiff,
+          foodName: name,
+        ); 
+      default:
+        return Notification(
+          notificationDate: expiryDate.subtract(Duration(days: 3)).add(Duration(hours: 9)), 
+          daysUntilExpiry: dayDiff,
+          foodName: name,
+        ); 
+    }
   }
 }
 
+/// Notification class that contains info about a specific notifications date and message
+class Notification {
+  final DateTime notificationDate;
+  final int daysUntilExpiry;
+  final String foodName;
+
+  Notification({required this.notificationDate, required this.daysUntilExpiry, required this.foodName});
+
+  get titleMessage => "$foodName is about to expire!";
+  String get subTitleMessage {
+    if(daysUntilExpiry == 0) {
+      return "Your ${foodName.toLowerCase()} expires today! ${generateNotifEmoji()}";
+    } else {
+      return "Your ${foodName.toLowerCase()} expires in ${daysUntilExpiry.toString()} days ${generateNotifEmoji()}";
+    }
+  }
+}
 
 class FormWidget extends StatefulWidget {
   const FormWidget({super.key});
@@ -497,8 +618,6 @@ class _FormWidgetState extends State<FormWidget> {
     );
   }
 }
-
-
 
 class ExpiredFoods extends StatefulWidget {
   const ExpiredFoods({super.key});
