@@ -16,7 +16,7 @@ dependencies:
   permission_handler:
   android_intent_plus: 
   unixtime: 
-  
+  timezone:
   mysql1: ^0.20.0
   pocketbase:
 
