@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:food_app/Models/FoodNotification.dart';
 import 'package:food_app/globals.dart';
 import '../Models/FoodItem.dart';
 import 'dart:math';
@@ -116,7 +117,10 @@ class FoodItemWidget extends StatefulWidget {
   const FoodItemWidget({required this.foodItem, super.key, required this.onDelete});
 
   final FoodItem foodItem;
-  final VoidCallback onDelete;
+
+  // we have to do this because we want to set the state of a parent widget (FreshFoodState) 
+  // this is so the list of food items gets updated in the ui
+  final VoidCallback onDelete; // setState should be called onDelete
 
   @override
   State<FoodItemWidget> createState() => _FoodItemWidgetState();
@@ -143,10 +147,11 @@ class _FoodItemWidgetState extends State<FoodItemWidget> {
                 Text(widget.foodItem.getDisplayString()),
                 Spacer(),
                 ElevatedButton(
-                  onPressed: () => {
+                  onPressed: () async => {
                     allFoodItems.removeWhere((foodInList) => foodInList.id == widget.foodItem.id),
                     db.deleteFoodItem(widget.foodItem.id), 
-                    widget.onDelete(),
+                    widget.onDelete(), // visually show the update before using an async method
+                    await reloadNotifications(), //delete all notifications and add them back
                     // print(allFoodItems[foodItem.index].name + foodItem.name)
                   },
                   child: Icon(Icons.delete)

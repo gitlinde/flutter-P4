@@ -39,6 +39,16 @@ String generateNotifEmoji() {
 
 
 void scheduleNotifications(/*DateTime time, */FoodItem foodItem) async {
+  print(foodItem.notifications);
+
+  print("");
+  for(FoodNotification notification in foodItem.notifications) {
+    print(notification.titleMessage);
+    print(notification.subTitleMessage);
+    print(notification.notificationDate);
+
+    print(" ");
+  }
   // an error happens if the user uses a date which is less than 3 days (at 9am) before it expires
   // can be fixed in FoodItem class and by checking input
 
@@ -67,5 +77,13 @@ void scheduleNotifications(/*DateTime time, */FoodItem foodItem) async {
       )),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle
     );
+  }
+}
+
+Future<void> reloadNotifications() async {
+  await localNotifications.cancelAll();
+  print("cancelled all notifications, schedueling new ones!");
+  for(FoodItem foodItem in allFoodItems) {
+    scheduleNotifications(foodItem);
   }
 }
