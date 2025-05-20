@@ -161,4 +161,3 @@ class _FoodItemWidgetState extends State<FoodItemWidget> {
     );
   }
 }
-

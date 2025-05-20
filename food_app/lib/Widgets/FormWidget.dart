@@ -3,8 +3,6 @@ import 'package:food_app/DB/Pocketbase.dart' as db;
 import 'package:food_app/Models/FoodItem.dart';
 import 'package:food_app/Widgets/FreshFood.dart';
 
-
-
 class FormWidget extends StatefulWidget {
   const FormWidget({super.key});
 
@@ -13,10 +11,7 @@ class FormWidget extends StatefulWidget {
 }
 
 class _FormWidgetState extends State<FormWidget> {
-
   String foodName = '';
-
-  // terrible name for a variable
   DateTime foodExpiryDate = DateTime.now();
 
   @override

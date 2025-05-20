@@ -62,6 +62,3 @@ Future<String> pushFoodItemToDb(FoodItem foodItem) async {
 
   return foodItemPushedToDb.id;
 }
-
-
-

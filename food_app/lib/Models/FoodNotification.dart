@@ -43,13 +43,15 @@ void scheduleNotifications(/*DateTime time, */FoodItem foodItem) async {
   // can be fixed in FoodItem class and by checking input
 
   for(FoodNotification notification in foodItem.notifications) {
-    DateTime fewSecondsFromNow = DateTime.now().add(Duration(seconds: 5));
+    // DateTime fewSecondsFromNow = DateTime.now().add(Duration(seconds: 5));
 
-    // This one is for testing
-    tz.TZDateTime timeToNotify = tz.TZDateTime.from(fewSecondsFromNow, tz.getLocation('Europe/Copenhagen'));
+    // This one is for testing // DOESN'T WORK ANYMORE BECAUSE OF THE LOOP!
+    // tz.TZDateTime timeToNotify = tz.TZDateTime.from(fewSecondsFromNow, tz.getLocation('Europe/Copenhagen'));
 
     // This is the working version
-    // tz.TZDateTime timeToNotify = tz.TZDateTime.from(notification.notificationDate, tz.getLocation('Europe/Copenhagen'));
+    tz.TZDateTime timeToNotify = tz.TZDateTime.from(notification.notificationDate, tz.getLocation('Europe/Copenhagen'));
+    
+    // getting bug must be a date in the future
 
     await localNotifications.zonedSchedule(
       DateTime.now().unixtime, //generate a unique id https://pub.dev/documentation/unixtime/latest/

@@ -15,7 +15,6 @@ class FoodItem {
   int get daysUntilExpiry => expiryDate.difference(todayOnlyDay).inDays; // +1 coz otherwise tomorrow is in 0 days //may be wrong lol 
   FoodItem({required this.name, required this.expiryDate, this.id});
 
-
   String getDisplayString() {
 
     String dateString = expiryDate.toString().split(' ')[0];
@@ -28,7 +27,6 @@ class FoodItem {
     // string interpolation would be better
     return name + " - " + dayString + "/" + monthString + "/" + yearString + " - Expires in " + daysUntilExpiry.toString() + " days";
   }
-
 
   List<FoodNotification> _getNotifications(DateTime expiryDate) {
     print("_getFoodNotifications ran!");
@@ -69,14 +67,51 @@ class FoodItem {
   }
 
   FoodNotification _getSingleNotificaction(DateTime expiryDate, int dayDiff) {
-    // dayDiff == 2 days until expiry -notify 1 day before
-    // dayDiff == 1 days until expiry -notify 0 days before (on the day)
-    // dayDiff == 0 it's expiry day; maybe notify in evening
     if(dayDiff < 0) {
-      throw Exception("dayDiff under 0");
+      throw Exception("dayDiff under 0 in _getSingleNotificaction");
     }
+    
+    // dayDiff is just the difference in days between now and expiry date
+    // So if dayDiff == 2;
+      // you will get notified 2 days before expiry (+3h), 1 day before expiry and on the expiry date
 
-    FoodNotification? sameDayNotification;
+    // dayDiff == 0 you will get notified 3 hours after
+
+    switch (dayDiff) {
+      case 0:
+        return FoodNotification(
+          notificationDate: _getValidNotificationDate(expiryDate, dayDiff), 
+          daysUntilExpiry: dayDiff,
+          foodName: name,
+        );
+      case 1:
+        return FoodNotification(
+          notificationDate: _getValidNotificationDate(expiryDate, dayDiff), 
+          daysUntilExpiry: dayDiff,
+          foodName: name,
+        );
+      case 2:
+        return FoodNotification(
+          notificationDate: _getValidNotificationDate(expiryDate, dayDiff), 
+          daysUntilExpiry: dayDiff,
+          foodName: name,
+        ); 
+      case 3:
+        return FoodNotification(
+          notificationDate: _getValidNotificationDate(expiryDate, dayDiff), 
+          daysUntilExpiry: dayDiff,
+          foodName: name,
+        ); 
+      default: throw Exception("DEFAULT CASE in _getSingleNotificaction");
+    }
+  }
+
+  DateTime _getValidNotificationDate(DateTime expiryDate, int dayDiff) {
+    // one bad thing about this method is that
+    // it sends a notification to you 2 days before expiry 
+    // even if that's the same day you registered the food item
+
+    DateTime notifactionDate = expiryDate.subtract(Duration(days: dayDiff));
 
     final todayOnlyDay = DateTime(
       DateTime.now().year,
@@ -84,53 +119,15 @@ class FoodItem {
       DateTime.now().day,
     );
 
-    // if submitted on same day as expired, give notification 3 hours later,
-    // else: give notification on expiryDate at 9 AM
-    if(todayOnlyDay == expiryDate) {
-      sameDayNotification = FoodNotification(
-        // we can use DateTime.now() here because expiryDate is same day as DateTime.now()
-        notificationDate: DateTime.now().add(Duration(hours: 3)), 
-        daysUntilExpiry: dayDiff,
-        foodName: name, 
-      );
-    } else {
-      sameDayNotification = FoodNotification(
-        notificationDate: expiryDate.add(Duration(hours: 9)), 
-        daysUntilExpiry: dayDiff,
-        foodName: name, 
-      );
-    }
+    // print("daydiff: " + dayDiff.toString());
+    // print(notifactionDate.difference(todayOnlyDay));
+    // print(Duration());
+    // print(notifactionDate.difference(todayOnlyDay) == Duration(/*no args means no duration*/));
 
-    
-    switch (dayDiff) {
-      case 0:
-        return sameDayNotification;
-      case 1:
-        return FoodNotification(
-          notificationDate: expiryDate.subtract(Duration(days: dayDiff)).add(Duration(hours: 9)), 
-          daysUntilExpiry: dayDiff,
-          foodName: name,
-        );
-      case 2:
-        return FoodNotification(
-          notificationDate: expiryDate.subtract(Duration(days: dayDiff)).add(Duration(hours: 9)), 
-          daysUntilExpiry: dayDiff,
-          foodName: name,
-        ); 
-      case 3:
-        return FoodNotification(
-          notificationDate: expiryDate.subtract(Duration(days: dayDiff)).add(Duration(hours: 9)), 
-          daysUntilExpiry: dayDiff,
-          foodName: name,
-        ); 
-      default:
-        return FoodNotification(
-          notificationDate: expiryDate.subtract(Duration(days: 3)).add(Duration(hours: 9)), 
-          daysUntilExpiry: dayDiff,
-          foodName: name,
-        ); 
+    // if the notification date is the same as today
+    if(notifactionDate.difference(todayOnlyDay) == Duration(/*no args means no duration*/)) {
+      return DateTime.now().add(Duration(hours: 3));
     }
+    return expiryDate.subtract(Duration(days: dayDiff)).add(Duration(hours: 9));
   }
 }
-
-
