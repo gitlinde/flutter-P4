@@ -11,17 +11,6 @@ PocketBase pocketBase = PocketBase('http://192.168.0.155:8090');
 
 /// Adds a foodItem to allFoodItems list and pushes it to the db.
 Future<void> addFoodItem(FoodItem foodItem) async {
-  print(foodItem.notifications);
-
-  print("");
-  for(FoodNotification notification in foodItem.notifications) {
-    print(notification.titleMessage);
-    print(notification.subTitleMessage);
-    print(notification.notificationDate);
-
-    print(" ");
-  }
-
   scheduleNotifications(foodItem);
   String foodItemId = await pushFoodItemToDb(foodItem);
   foodItem.id = foodItemId;
