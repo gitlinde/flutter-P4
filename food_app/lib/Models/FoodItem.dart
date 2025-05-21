@@ -44,12 +44,11 @@ class FoodItem {
     
     int dayDiff = expiryDate.difference(todayOnlyDay).inDays;
 
-    if(dayDiff == 0) {
-      return [_getSingleNotificaction(expiryDate, dayDiff)];
-    }
+    // if(dayDiff == 0) {
+    //   return [_getSingleFoodNotificaction(expiryDate, dayDiff)];
+    // }
     
     List<FoodNotification> notificationDates = [];
-
     int cappedDayDiff = dayDiff;
   
     if(dayDiff > 3) {
@@ -58,7 +57,7 @@ class FoodItem {
     
     for(int i = cappedDayDiff; i >= 0; --i) {
       // print(i);
-      notificationDates.add(_getSingleNotificaction(expiryDate, i));
+      notificationDates.add(_getSingleFoodNotificaction(expiryDate, i));
     }
 
     print(notificationDates);
@@ -66,15 +65,14 @@ class FoodItem {
     return notificationDates;
   }
 
-  FoodNotification _getSingleNotificaction(DateTime expiryDate, int dayDiff) {
+  FoodNotification _getSingleFoodNotificaction(DateTime expiryDate, int dayDiff) {
     if(dayDiff < 0) {
-      throw Exception("dayDiff under 0 in _getSingleNotificaction");
+      throw Exception("dayDiff under 0 in _getSingleFoodNotificaction");
     }
     
     // dayDiff is just the difference in days between now and expiry date
     // So if dayDiff == 2;
       // you will get notified 2 days before expiry (+3h), 1 day before expiry and on the expiry date
-
     // dayDiff == 0 you will get notified 3 hours after
 
     switch (dayDiff) {
@@ -102,7 +100,7 @@ class FoodItem {
           daysUntilExpiry: dayDiff,
           foodName: name,
         ); 
-      default: throw Exception("DEFAULT CASE in _getSingleNotificaction");
+      default: throw Exception("DEFAULT CASE in _getSingleFoodNotificaction");
     }
   }
 
@@ -118,11 +116,6 @@ class FoodItem {
       DateTime.now().month,
       DateTime.now().day,
     );
-
-    // print("daydiff: " + dayDiff.toString());
-    // print(notifactionDate.difference(todayOnlyDay));
-    // print(Duration());
-    // print(notifactionDate.difference(todayOnlyDay) == Duration(/*no args means no duration*/));
 
     // if the notification date is the same as today
     if(notifactionDate.difference(todayOnlyDay) == Duration(/*no args means no duration*/)) {

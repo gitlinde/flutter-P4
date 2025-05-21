@@ -21,11 +21,12 @@ class BottomNavigationBarWidget extends StatelessWidget {
       ],
       selectedIndex: selectedDestinationIndex,
       onDestinationSelected: (value) {
-          // Navigator.push(context,MaterialPageRoute(builder: (context) => ExpiredFoods()));
           selectedDestinationIndex = value;
           switch(value) {
-            case 0: Navigator.push(context,MaterialPageRoute(builder: (context) => FreshFood()));
-            case 1: Navigator.push(context,MaterialPageRoute(builder: (context) => ExpiredFood()));
+            // from https://docs.flutter.dev/ui/navigation
+            // This works but we never pop from navigator, so we need to fix it up later
+            case 0: Navigator.push(context, MaterialPageRoute(builder: (context) => FreshFood()));
+            case 1: Navigator.push(context, MaterialPageRoute(builder: (context) => ExpiredFood()));
           }
       },
     );

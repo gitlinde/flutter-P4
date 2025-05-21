@@ -2,12 +2,10 @@ import 'package:pocketbase/pocketbase.dart';
 import 'package:food_app/Models/FoodItem.dart';
 import 'package:food_app/Models/FoodNotification.dart';
 import 'package:food_app/globals.dart';
-// import 'package:food_app/DB/Pocketbase.dart';
+
 // RUN POCKETBASE: pocketbase.exe serve --http="0.0.0.0:8090"
-PocketBase pocketBase = PocketBase('http://192.168.0.155:8090');
-// PocketBase pocketBase = PocketBase('http://localhost:8090');
-
-
+PocketBase pocketBase = PocketBase('http://192.168.0.155:8090'); // on local network
+// PocketBase pocketBase = PocketBase('http://localhost:8090'); // localhost
 
 /// Adds a foodItem to allFoodItems list and pushes it to the db.
 Future<void> addFoodItem(FoodItem foodItem) async {
@@ -19,7 +17,6 @@ Future<void> addFoodItem(FoodItem foodItem) async {
 
 Future<List<FoodItem>> fetchAllFoodItems() async {
   List<FoodItem> foodItems = [];
-
   final records = await pocketBase.collection('food').getFullList();
 
   for(int i = 0; i < records.length; ++i) {
@@ -36,7 +33,7 @@ Future<List<FoodItem>> fetchAllFoodItems() async {
 }
 
 void deleteFoodItem(String? foodItemId) {
-  // the ! is used since we know every foodItem has an id. Probably better to have error handling
+  // the ! is used here because we know every foodItem has an id. Probably better to have error handling
   pocketBase.collection('food').delete(foodItemId!);
 }
 

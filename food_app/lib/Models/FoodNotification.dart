@@ -5,7 +5,6 @@ import 'package:food_app/globals.dart';
 import 'package:unixtime/unixtime.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-
 /// FoodNotification class that contains info about a specific notifications date and message
 class FoodNotification {
   final DateTime notificationDate;
@@ -37,10 +36,8 @@ String generateNotifEmoji() {
   return emojis[randomIndex];
 }
 
-
 void scheduleNotifications(/*DateTime time, */FoodItem foodItem) async {
-  print(foodItem.notifications);
-
+  // prints all notifications in log
   print("");
   for(FoodNotification notification in foodItem.notifications) {
     print(notification.titleMessage);
@@ -49,20 +46,15 @@ void scheduleNotifications(/*DateTime time, */FoodItem foodItem) async {
 
     print(" ");
   }
-  // an error happens if the user uses a date which is less than 3 days (at 9am) before it expires
-  // can be fixed in FoodItem class and by checking input
 
   for(FoodNotification notification in foodItem.notifications) {
     // DateTime fewSecondsFromNow = DateTime.now().add(Duration(seconds: 5));
-
     // This one is for testing // DOESN'T WORK ANYMORE BECAUSE OF THE LOOP!
     // tz.TZDateTime timeToNotify = tz.TZDateTime.from(fewSecondsFromNow, tz.getLocation('Europe/Copenhagen'));
 
     // This is the working version
     tz.TZDateTime timeToNotify = tz.TZDateTime.from(notification.notificationDate, tz.getLocation('Europe/Copenhagen'));
     
-    // getting bug must be a date in the future
-
     await localNotifications.zonedSchedule(
       DateTime.now().unixtime, //generate a unique id https://pub.dev/documentation/unixtime/latest/
       // using string interpolation coz the blue lines made me angry
@@ -81,7 +73,7 @@ void scheduleNotifications(/*DateTime time, */FoodItem foodItem) async {
 }
 
 Future<void> reloadNotifications() async {
-  await localNotifications.cancelAll();
+  localNotifications.cancelAll();
   print("cancelled all notifications, schedueling new ones!");
   for(FoodItem foodItem in allFoodItems) {
     scheduleNotifications(foodItem);

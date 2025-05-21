@@ -36,8 +36,6 @@ class _FormWidgetState extends State<FormWidget> {
                   },
                   decoration: InputDecoration(
                     label: Text('Food name'),
-                    // hintText: 'Food name',
-                    // hintStyle: TextStyle(color: Color.fromARGB(160, 240, 227, 227))
                   ),
                 ),
               ),
@@ -86,7 +84,7 @@ class _FormWidgetState extends State<FormWidget> {
                     await db.addFoodItem(FoodItem(name: foodName, expiryDate: foodExpiryDate)),
                   },
                   // runApp(FreshFood())
-                  Navigator.push(context,MaterialPageRoute(builder: (context) => FreshFood()))
+                  Navigator.push(context,MaterialPageRoute(builder: (context) => FreshFood())),
                 },
                 child: Text('Submit')
               )
