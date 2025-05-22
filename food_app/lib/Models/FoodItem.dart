@@ -42,21 +42,16 @@ class FoodItem {
       expiryDate.day,
     );
     
-    int dayDiff = expiryDate.difference(todayOnlyDay).inDays;
-
-    // if(dayDiff == 0) {
-    //   return [_getSingleFoodNotificaction(expiryDate, dayDiff)];
-    // }
-    
-    List<FoodNotification> notificationDates = [];
+    final int dayDiff = expiryDate.difference(todayOnlyDay).inDays;
+    final List<FoodNotification> notificationDates = [];
+    final int maxDaysBeforeNotification = 3;
     int cappedDayDiff = dayDiff;
-  
-    if(dayDiff > 3) {
-      cappedDayDiff = 3;
+
+    if(dayDiff > maxDaysBeforeNotification) {
+      cappedDayDiff = maxDaysBeforeNotification;
     }
     
     for(int i = cappedDayDiff; i >= 0; --i) {
-      // print(i);
       notificationDates.add(_getSingleFoodNotificaction(expiryDate, i));
     }
 
