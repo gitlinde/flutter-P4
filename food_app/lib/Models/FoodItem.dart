@@ -61,42 +61,15 @@ class FoodItem {
   }
 
   FoodNotification _getSingleFoodNotificaction(DateTime expiryDate, int dayDiff) {
-    if(dayDiff < 0) {
-      throw Exception("dayDiff under 0 in _getSingleFoodNotificaction");
+    if(dayDiff < 0 || dayDiff > 3) {
+      throw Exception("dayDiff is invalid in _getSingleFoodNotificaction. dayDiff: " + dayDiff.toString());
     }
     
-    // dayDiff is just the difference in days between now and expiry date
-    // So if dayDiff == 2;
-      // you will get notified 2 days before expiry (+3h), 1 day before expiry and on the expiry date
-    // dayDiff == 0 you will get notified 3 hours after
-
-    switch (dayDiff) {
-      case 0:
-        return FoodNotification(
-          notificationDate: _getValidNotificationDate(expiryDate, dayDiff), 
-          daysUntilExpiry: dayDiff,
-          foodName: name,
-        );
-      case 1:
-        return FoodNotification(
-          notificationDate: _getValidNotificationDate(expiryDate, dayDiff), 
-          daysUntilExpiry: dayDiff,
-          foodName: name,
-        );
-      case 2:
-        return FoodNotification(
-          notificationDate: _getValidNotificationDate(expiryDate, dayDiff), 
-          daysUntilExpiry: dayDiff,
-          foodName: name,
-        ); 
-      case 3:
-        return FoodNotification(
-          notificationDate: _getValidNotificationDate(expiryDate, dayDiff), 
-          daysUntilExpiry: dayDiff,
-          foodName: name,
-        ); 
-      default: throw Exception("DEFAULT CASE in _getSingleFoodNotificaction");
-    }
+    return FoodNotification(
+      notificationDate: _getValidNotificationDate(expiryDate, dayDiff), 
+      daysUntilExpiry: dayDiff,
+      foodName: name,
+    );
   }
 
   DateTime _getValidNotificationDate(DateTime expiryDate, int dayDiff) {
