@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:food_app/DB/Pocketbase.dart' as db;
 import 'package:food_app/Models/FoodItem.dart';
 import 'package:food_app/Widgets/FreshFood.dart';
+import 'package:food_app/globals.dart';
 
 class FormWidget extends StatefulWidget {
   const FormWidget({super.key});
@@ -42,9 +43,12 @@ class _FormWidgetState extends State<FormWidget> {
               SizedBox(height: 20),
                Row(
                  children: [
-                    ElevatedButton(onPressed: () {
-                      print('minus 1');
-                    }, child: Icon(Icons.exposure_minus_1)),
+                    // ElevatedButton(onPressed: () {
+                    //   print('minus 1');
+                    // }, child: Icon(Icons.exposure_minus_1)),
+                    SizedBox(
+                      width: homeMargin,
+                    ),
                     SizedBox(
                     width: 100,
                     child: TextFormField(
@@ -70,9 +74,9 @@ class _FormWidgetState extends State<FormWidget> {
                       ),
                     ),
                   ),
-                  ElevatedButton(onPressed: () {
-                    print('plus 1');
-                  }, child: Icon(Icons.exposure_plus_1)),
+                  // ElevatedButton(onPressed: () {
+                  //   print('plus 1');
+                  // }, child: Icon(Icons.exposure_plus_1)),
                  ]
                ),
               SizedBox(height: 20),

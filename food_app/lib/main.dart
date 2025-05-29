@@ -10,7 +10,6 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 // TODO - the more up the TODO, the more urgent
-// Each time a food item is deleted; clear all scheduled notifications and add notifications again for everything
 // Have sort the list by default
 // Make the form / user input more user friendly
 // Add edit / info button

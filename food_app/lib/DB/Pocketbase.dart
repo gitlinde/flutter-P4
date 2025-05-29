@@ -9,7 +9,7 @@ PocketBase pocketBase = PocketBase('http://192.168.0.155:8090'); // on local net
 
 /// Adds a foodItem to allFoodItems list and pushes it to the db.
 Future<void> addFoodItem(FoodItem foodItem) async {
-  scheduleNotifications(foodItem);
+  foodItem.notificationIds.addAll(await scheduleNotificationsAndRetrieveIds(foodItem));
   String foodItemId = await pushFoodItemToDb(foodItem);
   foodItem.id = foodItemId;
   allFoodItems.add(foodItem);
@@ -39,12 +39,21 @@ void deleteFoodItem(String? foodItemId) {
 
 /// Returns the PocketBase id of the newly created food item.
 Future<String> pushFoodItemToDb(FoodItem foodItem) async {
+
   final foodItemPushedToDb = await pocketBase.collection('food').create(
     body: {
       'name': foodItem.name,
       'expiry_date': foodItem.expiryDate.toIso8601String(),
     }
   );
+
+  for(int i = 0; i < foodItem.notificationIds.length; ++i) {
+    pocketBase.collection('food').update(foodItemPushedToDb.id, 
+      body: {
+        'notificationId$i': foodItem.notificationIds[i]
+      }
+    );
+  }
 
   return foodItemPushedToDb.id;
 }

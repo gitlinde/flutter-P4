@@ -36,7 +36,7 @@ String generateNotifEmoji() {
   return emojis[randomIndex];
 }
 
-void scheduleNotifications(/*DateTime time, */FoodItem foodItem) async {
+Future<List<int>> scheduleNotificationsAndRetrieveIds(/*DateTime time, */FoodItem foodItem) async {
   // prints all notifications in log
   print("");
   for(FoodNotification notification in foodItem.notifications) {
@@ -47,7 +47,12 @@ void scheduleNotifications(/*DateTime time, */FoodItem foodItem) async {
     print(" ");
   }
 
+  List<int> notificationIds = [];
+
   for(FoodNotification notification in foodItem.notifications) {
+    int notificationId = DateTime.now().unixtime;
+    notificationIds.add(notificationId);
+
     // DateTime fewSecondsFromNow = DateTime.now().add(Duration(seconds: 5));
     // This one is for testing // DOESN'T WORK ANYMORE BECAUSE OF THE LOOP!
     // tz.TZDateTime timeToNotify = tz.TZDateTime.from(fewSecondsFromNow, tz.getLocation('Europe/Copenhagen'));
@@ -56,7 +61,7 @@ void scheduleNotifications(/*DateTime time, */FoodItem foodItem) async {
     tz.TZDateTime timeToNotify = tz.TZDateTime.from(notification.notificationDate, tz.getLocation('Europe/Copenhagen'));
     
     await localNotifications.zonedSchedule(
-      DateTime.now().unixtime, //generate a unique id https://pub.dev/documentation/unixtime/latest/
+      notificationId, //generate a unique id https://pub.dev/documentation/unixtime/latest/
       // using string interpolation coz the blue lines made me angry
       notification.titleMessage,
       notification.subTitleMessage,
@@ -70,12 +75,20 @@ void scheduleNotifications(/*DateTime time, */FoodItem foodItem) async {
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle
     );
   }
+  return notificationIds;
 }
 
-Future<void> reloadNotifications() async {
-  localNotifications.cancelAll();
-  print("cancelled all notifications, schedueling new ones!");
-  for(FoodItem foodItem in allFoodItems) {
-    scheduleNotifications(foodItem);
+void removeNotifications(List<int> notificationIds) {
+  for(int notificationId in notificationIds) {
+    localNotifications.cancel(notificationId);
   }
 }
+
+// REMOVE THIS METHOD
+// Future<void> reloadNotifications() async {
+//   localNotifications.cancelAll();
+//   print("cancelled all notifications, schedueling new ones!");
+//   for(FoodItem foodItem in allFoodItems) {
+//     scheduleNotificationsAndRetrieveIds(foodItem);
+//   }
+// }

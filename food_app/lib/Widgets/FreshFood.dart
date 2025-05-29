@@ -91,7 +91,7 @@ class _FreshFoodState extends State<FreshFood> {
         children: [
           for(int i = 0; i < allFoodItems.length; ++i)
             FoodItemWidget(foodItem: allFoodItems[i], onDelete: () => setState(() {}),),
-          // if(false) ElevatedButton( 
+          // ElevatedButton( 
           //   onPressed:() {
           //     addRandomFoodItem(allFoodItems);
           //     // getFirstRow();
@@ -151,7 +151,9 @@ class _FoodItemWidgetState extends State<FoodItemWidget> {
                     allFoodItems.removeWhere((foodInList) => foodInList.id == widget.foodItem.id),
                     db.deleteFoodItem(widget.foodItem.id), 
                     widget.onDelete(), // visually show the update before using an async method
-                    await reloadNotifications(), //delete all notifications and add them back
+                    removeNotifications(widget.foodItem.notificationIds)
+
+                    // await reloadNotifications(), //delete all notifications and add them back
                     // print(allFoodItems[foodItem.index].name + foodItem.name)
                   },
                   child: Icon(Icons.delete)

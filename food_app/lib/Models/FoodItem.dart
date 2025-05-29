@@ -8,6 +8,7 @@ class FoodItem {
   final DateTime expiryDate;
   late final List<FoodNotification> notifications = _getNotifications(expiryDate);
   
+  final List<int> notificationIds = [];
   String? id;
 
   final DateTime todayOnlyDay = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
@@ -88,6 +89,7 @@ class FoodItem {
     // if the notification date is the same as today
     if(notifactionDate.difference(todayOnlyDay) == Duration(/*no args means no duration*/)) {
       return DateTime.now().add(Duration(hours: 3));
+      // return DateTime.now().add(Duration(seconds: 10));
     }
     return expiryDate.subtract(Duration(days: dayDiff)).add(Duration(hours: 9));
   }
