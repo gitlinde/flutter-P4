@@ -47,6 +47,54 @@
         "required": false,
         "system": false,
         "type": "date"
+      },
+      {
+        "hidden": false,
+        "id": "number773433830",
+        "max": null,
+        "min": null,
+        "name": "notificationId0",
+        "onlyInt": false,
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "number"
+      },
+      {
+        "hidden": false,
+        "id": "number1495177584",
+        "max": null,
+        "min": null,
+        "name": "notificationId1",
+        "onlyInt": false,
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "number"
+      },
+      {
+        "hidden": false,
+        "id": "number3222784202",
+        "max": null,
+        "min": null,
+        "name": "notificationId2",
+        "onlyInt": false,
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "number"
+      },
+      {
+        "hidden": false,
+        "id": "number3071342684",
+        "max": null,
+        "min": null,
+        "name": "notificationId3",
+        "onlyInt": false,
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "number"
       }
     ],
     "indexes": [],
