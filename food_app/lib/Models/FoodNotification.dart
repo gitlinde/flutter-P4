@@ -49,8 +49,14 @@ Future<List<int>> scheduleNotificationsAndRetrieveIds(/*DateTime time, */FoodIte
 
   List<int> notificationIds = [];
 
-  for(FoodNotification notification in foodItem.notifications) {
-    int notificationId = DateTime.now().unixtime;
+  // for(FoodNotification notification in foodItem.notifications) {
+  
+  for(int i = 0; i < foodItem.notifications.length; ++i) {
+    final notification = foodItem.notifications[i];
+
+    // if you add another item within 3 seconds this approach won't work
+    // a hashing algorithm would be better, but doesn't matter for us right now.
+    int notificationId = DateTime.now().unixtime + i;
     notificationIds.add(notificationId);
 
     // DateTime fewSecondsFromNow = DateTime.now().add(Duration(seconds: 5));

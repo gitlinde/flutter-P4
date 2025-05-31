@@ -47,13 +47,13 @@ Future<String> pushFoodItemToDb(FoodItem foodItem) async {
     }
   );
 
+  Map<String, dynamic> notificationBody = {};
+
   for(int i = 0; i < foodItem.notificationIds.length; ++i) {
-    pocketBase.collection('food').update(foodItemPushedToDb.id, 
-      body: {
-        'notificationId$i': foodItem.notificationIds[i]
-      }
-    );
+    print("notification:${foodItem.notificationIds[i]}");
+    notificationBody['notificationId$i'] = foodItem.notificationIds[i];
   }
 
+  pocketBase.collection('food').update(foodItemPushedToDb.id, body: notificationBody);
   return foodItemPushedToDb.id;
 }
