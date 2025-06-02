@@ -36,8 +36,9 @@ String generateNotifEmoji() {
   return emojis[randomIndex];
 }
 
-Future<List<int>> scheduleNotificationsAndRetrieveIds(/*DateTime time, */FoodItem foodItem) async {
-  // prints all notifications in log
+Future<List<int>> scheduleNotificationsAndRetrieveIds(FoodItem foodItem) async {
+  List<int> notificationIds = [];
+
   print("");
   for(FoodNotification notification in foodItem.notifications) {
     print(notification.titleMessage);
@@ -47,10 +48,6 @@ Future<List<int>> scheduleNotificationsAndRetrieveIds(/*DateTime time, */FoodIte
     print(" ");
   }
 
-  List<int> notificationIds = [];
-
-  // for(FoodNotification notification in foodItem.notifications) {
-  
   for(int i = 0; i < foodItem.notifications.length; ++i) {
     final notification = foodItem.notifications[i];
 
@@ -59,16 +56,10 @@ Future<List<int>> scheduleNotificationsAndRetrieveIds(/*DateTime time, */FoodIte
     int notificationId = DateTime.now().unixtime + i;
     notificationIds.add(notificationId);
 
-    // DateTime fewSecondsFromNow = DateTime.now().add(Duration(seconds: 5));
-    // This one is for testing // DOESN'T WORK ANYMORE BECAUSE OF THE LOOP!
-    // tz.TZDateTime timeToNotify = tz.TZDateTime.from(fewSecondsFromNow, tz.getLocation('Europe/Copenhagen'));
-
-    // This is the working version
     tz.TZDateTime timeToNotify = tz.TZDateTime.from(notification.notificationDate, tz.getLocation('Europe/Copenhagen'));
     
     await localNotifications.zonedSchedule(
       notificationId, //generate a unique id https://pub.dev/documentation/unixtime/latest/
-      // using string interpolation coz the blue lines made me angry
       notification.titleMessage,
       notification.subTitleMessage,
       timeToNotify,

@@ -15,7 +15,6 @@ import 'package:timezone/timezone.dart' as tz;
 // Add edit / info button
 // When updating allFoodItems list, put expired items into the expiredFoodItems list
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

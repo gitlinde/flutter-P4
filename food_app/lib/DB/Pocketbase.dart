@@ -4,7 +4,7 @@ import 'package:food_app/Models/FoodNotification.dart';
 import 'package:food_app/globals.dart';
 
 // RUN POCKETBASE: pocketbase.exe serve --http="0.0.0.0:8090"
-PocketBase pocketBase = PocketBase('http://192.168.0.155:8090'); // on local network
+PocketBase pocketBase = PocketBase('http://87.104.249.148:8090'); // on local network
 // PocketBase pocketBase = PocketBase('http://localhost:8090'); // localhost
 
 /// Adds a foodItem to allFoodItems list and pushes it to the db.
